@@ -59,6 +59,7 @@ class AirMouse:
 
     def read_frame(self):
         success, self.image_np = self.vid_cap.read()
+        self.image_np = cv2.cvtColor(self.image_np, cv2.COLOR_BGR2RGB)
         assert success, f'Failed to read image. Check Camera!!'
         image_mp = mp.Image(image_format=mp.ImageFormat.SRGB, data=self.image_np)
         return image_mp
@@ -66,11 +67,6 @@ class AirMouse:
     def draw_landmarks_on_image(self, image_mp, recognition_result):
         output_img = self.gesture_recognizer.draw_landmarks_on_image(image_mp.numpy_view(), recognition_result)
         return output_img
-
-    def crop_images(self):
-        print(' ')
-
-        return
 
     def perform_action(self, recognition_data):
         if not len(recognition_data.gestures):
@@ -204,7 +200,7 @@ class AirMouse:
 
 def run():
     finger_config = Config()
-    air_mouse = AirMouse(finger_config, source_id=1)
+    air_mouse = AirMouse(finger_config, source_id=0)
 
     while True:
         input_img = air_mouse.read_frame()
@@ -213,7 +209,7 @@ def run():
 
         annotated_image = air_mouse.draw_landmarks_on_image(input_img, recognition_result)
 
-        cv2.imshow('output', annotated_image)
+        cv2.imshow('output', annotated_image[:, :, ::-1])
         k = cv2.waitKey(1) & 0xFF
         if k == ord('q'):
             print('Exiting..!!')
