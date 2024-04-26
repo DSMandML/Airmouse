@@ -2,6 +2,11 @@
 
 class Config:
     def __init__(self):
+        """
+        Configuration class.
+        Define all the configurations and hyperparameters here.
+        Pre-defines indicies for different fingers.
+        """
         self.wrist = (0)
         self.thumb = (1, 2, 3, 4)
         self.index = (5, 6, 7, 8)

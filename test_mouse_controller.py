@@ -1,6 +1,8 @@
+"""
+Test scrip to test mouse pointer movement using pyautogui package.
+"""
 import pyautogui
 import time
-
 
 screen_width, screen_height = pyautogui.size()
 print(f'Screen size: {screen_height}x{screen_width}')
@@ -25,53 +27,3 @@ time.sleep(5)
 print('Perform right click..')
 pyautogui.rightClick()
 # pyautogui.doubleClick()
-
-# Check the documentation for more options and functions: https://pyautogui.readthedocs.io/en/latest/
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll
-#cdlllllllllllllllll

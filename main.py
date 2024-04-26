@@ -1,3 +1,6 @@
+import mediapipe
+
+from mediapipe.tasks.python.vision import GestureRecognizerResult
 from mp_gesture_recognizer import GestureRecognizer
 from pointer_controller import PointerController
 from Config import Config
@@ -9,14 +12,22 @@ import cv2
 
 
 class State(Enum):
+    """
+    Enum for different states.
+    """
     idle = 0
     initializing = 1
     running = 2
 
 
-
 class AirMouse:
-    def __init__(self, finger_config, source_id=0):
+    def __init__(self, finger_config: Config, source_id: int = 0):
+        """
+        Control mouse pointer with index finger.
+        Initializes the class and variables.
+        :param finger_config: Configuration file
+        :param source_id: Video source id
+        """
         self.vid_cap = cv2.VideoCapture(source_id)
         success, image_np = self.vid_cap.read()
         assert success, f'Camera failed to open...'
@@ -47,28 +58,53 @@ class AirMouse:
         self.data = None
         self.prev_data = None
 
-    def init_state(self, hand):
+    def init_state(self, hand:str):
+        """
+        Initialize the state and hand
+        :param hand: 'left' or 'right'
+        :return:
+        """
         self.cur_hand = hand
         self.state = State.running
 
     def reset_state(self):
+        """
+        Reset state
+        :return:
+        """
         self.data = None
         self.prev_data = None
         self.cur_hand = None
         self.state = State.idle
 
-    def read_frame(self):
+    def read_frame(self) -> mediapipe.ImageFrame:
+        """
+        Read image file into media pipe SRGB image format
+        :return: image in media pipe SRGB format
+        """
         success, self.image_np = self.vid_cap.read()
         self.image_np = cv2.cvtColor(self.image_np, cv2.COLOR_BGR2RGB)
         assert success, f'Failed to read image. Check Camera!!'
         image_mp = mp.Image(image_format=mp.ImageFormat.SRGB, data=self.image_np)
         return image_mp
 
-    def draw_landmarks_on_image(self, image_mp, recognition_result):
+    def draw_landmarks_on_image(self, image_mp: mediapipe.ImageFrame, recognition_result: GestureRecognizerResult) -> np.ndarray:
+        """
+        Draw hand skeleton on the image based on the results
+        :param image_mp: input image
+        :param recognition_result: gesture recognition results
+        :return: hand skeleton drawn on image
+        """
         output_img = self.gesture_recognizer.draw_landmarks_on_image(image_mp.numpy_view(), recognition_result)
         return output_img
 
-    def perform_action(self, recognition_data):
+    def perform_action(self, recognition_data: GestureRecognizerResult):
+        """
+        Perform different actions such as pointer move, left click, öeft double click,
+        right click, and drag
+        :param recognition_data: Gesture recognition result as input
+        :return: null
+        """
         if not len(recognition_data.gestures):
             if self.state != State.idle:
                 if self.no_hand_counter > self.no_hand_thresh:
@@ -81,7 +117,7 @@ class AirMouse:
             self.state = State.initializing
 
         self.data = self.restructure_output(recognition_data)
-        gesture, gesture_prob = self.data[0]['gesture']
+        gesture, gesture_prob = self.data[0]['gesture']    # Consider only biggest hand
         if gesture_prob < 0.5:
             return
 
@@ -130,7 +166,12 @@ class AirMouse:
             self.prev_data = self.data
         return
 
-    def restructure_output(self, data):
+    def restructure_output(self, data: GestureRecognizerResult) -> list:
+        """
+        Restructure the gesture result into list of dict and sort by area
+        :param data: Gesture recognition result as input
+        :return: sorted list of dict based on area
+        """
         output_data = []
         for gesture, landmarks, metadata in zip(data.gestures, data.hand_landmarks, data.handedness):
             landmarks_np = np.array(list((data.x*self.image_np.shape[1], data.y*self.image_np.shape[0]) for data in landmarks))
@@ -144,6 +185,10 @@ class AirMouse:
         return output_data
 
     def check_click_action(self):
+        """
+        Function to check if click action is performed with thumb
+        :return:
+        """
         if self.prev_data[0]['gesture'][0] == 'Pointing_Up':
             self.click_prev_valid = True
             self.click_counter = 0
@@ -156,6 +201,10 @@ class AirMouse:
         return
 
     def check_and_perform_scroll(self):
+        """
+        Function to check and perform scroll using open palm
+        :return:
+        """
         if self.prev_data[0]['gesture'][0] == 'Open_Palm':
             self.start_scroll = True
             self.pointer.reset_scroll()
@@ -172,6 +221,12 @@ class AirMouse:
         return
 
     def lock_pointer_to_finger(self):
+        """
+        Initial setup period for which the finger is not moving.
+        The finger has to be stable for sometime to lock the finger.
+        The current finger position then gets locked to the current pointer position.
+        :return:
+        """
         if self.finger_lock_counter > self.max_frames_to_lock:
             self.init_state(self.data[0]['hand_side'])
             return
@@ -191,6 +246,10 @@ class AirMouse:
         return
 
     def move_pointer_from_finger(self):
+        """
+        Move mouse pointer by moving finger
+        :return:
+        """
         prev_loc = self.prev_data[0]['landmark'][self.finger_config.finger_to_lock]
         cur_loc = self.data[0]['landmark'][self.finger_config.finger_to_lock]
         move_x, move_y = prev_loc - cur_loc

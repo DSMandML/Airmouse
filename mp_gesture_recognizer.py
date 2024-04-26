@@ -1,6 +1,8 @@
+import mediapipe
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+from mediapipe.tasks.python.vision import GestureRecognizerResult
 from mediapipe import solutions
 from mediapipe.framework.formats import landmark_pb2
 import numpy as np
@@ -9,18 +11,32 @@ import cv2
 
 class GestureRecognizer:
     def __init__(self):
+        """
+        Gesture recognition using media pipe library.
+        """
         self.base_options = python.BaseOptions(model_asset_path='gesture_recognizer.task')
         self.gesture_recognition_options = vision.GestureRecognizerOptions(base_options=self.base_options,
                                            running_mode=mp.tasks.vision.RunningMode.VIDEO, num_hands=2)
         self.model = vision.GestureRecognizer.create_from_options(self.gesture_recognition_options)
         self.frame_idx = 0
 
-    def __call__(self, input):
+    def __call__(self, input: mediapipe.ImageFrame):
+        """
+        Perform inference on input image for gesture recognition.
+        :param input: input image
+        :return:
+        """
         result = self.model.recognize_for_video(input, self.frame_idx)
         self.frame_idx +=1
         return result
 
-    def draw_landmarks_on_image(self, rgb_image, detection_result):
+    def draw_landmarks_on_image(self, rgb_image: np.ndarray, detection_result: GestureRecognizerResult) -> np.ndarray:
+        """
+        Draw hand skeleton on the image based on the results
+        :param rgb_image: input image
+        :param detection_result: Gesture detection output
+        :return: hand skeleton drawn on image
+        """
         hand_landmarks_list = detection_result.hand_landmarks
         hand_gesture_list = detection_result.gestures
         handedness_list = detection_result.handedness
@@ -68,8 +84,7 @@ if __name__ == '__main__':
         image_mp = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_np)
         if not success:
             break
-        gesture_recognizer(image_mp)
-        result = gesture_recognizer.get_result()
+        result = gesture_recognizer(image_mp)
         annotated_image = gesture_recognizer.draw_landmarks_on_image(image_mp.numpy_view(), result)
         cv2.imshow('output', annotated_image)
         k = cv2.waitKey(1) & 0xFF
